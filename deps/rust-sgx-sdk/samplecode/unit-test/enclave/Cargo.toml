@@ -1,0 +1,30 @@
+[package]
+name = "Unittestsampleenclave"
+version = "1.0.0"
+authors = ["The Teaclave Authors"]
+
+[lib]
+name = "unittestsampleenclave"
+crate-type = ["staticlib"]
+
+[features]
+default = []
+
+[target.'cfg(not(target_env = "sgx"))'.dependencies]
+sgx_types = { path = "../../../sgx_types" }
+sgx_tstd = { path = "../../../sgx_tstd", features = ["untrusted_fs", "thread", "backtrace"] }
+sgx_tcrypto = { path = "../../../sgx_tcrypto" }
+sgx_tunittest = { path = "../../../sgx_tunittest" }
+sgx_trts = { path = "../../../sgx_trts" }
+sgx_rand = { path = "../../../sgx_rand" }
+sgx_tseal = { path = "../../../sgx_tseal" }
+sgx_serialize = { path = "../../../sgx_serialize" }
+sgx_alloc = { path = "../../../sgx_alloc" }
+sgx_libc = { path = "../../../sgx_libc" }
+sgx_signal = { path = "../../../sgx_signal" }
+
+[dependencies]
+sgx_serialize_derive = { path = "../../../sgx_serialize_derive" }
+rand = { version = "0.5.5", default-features = false }
+memoffset = "0.5"
+sgx_align_struct_attribute = { path = "../../../sgx_align_struct_attribute" }

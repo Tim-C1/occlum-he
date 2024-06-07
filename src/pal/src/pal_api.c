@@ -68,6 +68,8 @@ int pal_run_init_process() {
 }
 
 int occlum_pal_init(const struct occlum_pal_attr *attr) {
+    int ret;
+    struct timespec ts;
     if (attr == NULL) {
         errno = EINVAL;
         return -1;
@@ -91,20 +93,23 @@ int occlum_pal_init(const struct occlum_pal_attr *attr) {
     }
 #endif
 
-    sgx_enclave_id_t eid = pal_get_enclave_id();
+    sgx_enclave_id_t eid = pal_get_enclave_id(); // SGX_INVALID_ENCLAVE_ID, trivial
     if (eid != SGX_INVALID_ENCLAVE_ID) {
         PAL_ERROR("Enclave has been initialized.");
         errno = EEXIST;
         return -1;
     }
 
-    if (pal_register_sig_handlers() < 0) {
+    if (pal_register_sig_handlers() < 0) { // linux signal syscall trivial
         return -1;
     }
 
+    
+    pal_clock(&ts, "start pal_init_enclave");
     if (pal_init_enclave(resolved_path) < 0) {
         return -1;
     }
+    pal_clock(&ts, "finish pal_init_enclave");
     eid = pal_get_enclave_id();
 
     int ecall_ret = 0;
@@ -126,8 +131,10 @@ int occlum_pal_init(const struct occlum_pal_attr *attr) {
         .resolv_conf_buf_size = resolv_conf_ptr.size,
     };
 
+    pal_clock(&ts, "start occlum_ecall_init");
     sgx_status_t ecall_status = occlum_ecall_init(eid, &ecall_ret, attr->log_level,
                                 resolved_path, &file_buffer);
+    pal_clock(&ts, "finish occlum_ecall_init");
 
     free_host_file_buffer(eid, &file_buffer);
 
@@ -142,15 +149,19 @@ int occlum_pal_init(const struct occlum_pal_attr *attr) {
         goto on_destroy_enclave;
     }
 
+    pal_clock(&ts, "start pal_interrupt_thread_start");
     if (pal_interrupt_thread_start() < 0) {
         PAL_ERROR("Failed to start the interrupt thread: %s", errno2str(errno));
         goto on_destroy_enclave;
     }
+    pal_clock(&ts, "finish pal_interrupt_thread_start");
 
+    pal_clock(&ts, "start pal_run_init_process");
     if (pal_run_init_process() < 0) {
         PAL_ERROR("Failed to run the init process: %s", errno2str(errno));
         goto stop_interrupt_thread;
     }
+    pal_clock(&ts, "finish pal_run_init_process");
 
     return 0;
 

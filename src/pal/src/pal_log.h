@@ -2,7 +2,6 @@
 #define __PAL_LOG_H__
 
 #include <stdio.h>
-
 #define PAL_DEBUG(fmt, ...) \
     fprintf(stderr, "[DEBUG] occlum-pal: " fmt " (line %d, file %s)\n", ##__VA_ARGS__, __LINE__, __FILE__)
 #define PAL_INFO(fmt, ...) \
@@ -11,5 +10,6 @@
     fprintf(stderr, "[WARN] occlum-pal: " fmt " (line %d, file %s)\n", ##__VA_ARGS__, __LINE__, __FILE__)
 #define PAL_ERROR(fmt, ...) \
     fprintf(stderr, "[ERROR] occlum-pal: " fmt " (line %d, file %s)\n", ##__VA_ARGS__, __LINE__, __FILE__)
+extern void pal_clock(struct timespec *ts, char *s);
 
 #endif /* __PAL_LOG_H__ */

@@ -76,12 +76,14 @@ int pal_init_enclave(const char *instance_dir) {
     sgx_launch_token_t token = {0};
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
     int updated = 0;
+    struct timespec ts;
 
     /* Step 1: try to retrieve the launch token saved by last transaction
      *         if there is no token, then create a new one.
      */
     /* try to get the token saved in $HOME */
     const char *home_dir = NULL;
+    pal_clock(&ts, "start retrieve launch token");
     struct passwd *pw = getpwuid(getuid());
     if (pw != NULL) {
         home_dir = pw->pw_dir;
@@ -112,9 +114,11 @@ int pal_init_enclave(const char *instance_dir) {
             PAL_WARN("Invalid launch token read from \"%s\".\n", token_path);
         }
     }
+    pal_clock(&ts, "finish retrieve launch token");
 
     /* Step 2: call sgx_create_enclave to initialize an enclave instance */
     /* Debug Support: set 2nd parameter to 1 */
+    pal_clock(&ts, "start sgx_create_enclave");
     const char *enclave_path = get_enclave_absolute_path(instance_dir);
     int sgx_debug_flag = get_enclave_debug_flag();
     int sgx_enable_kss = get_enable_kss_flag();
@@ -153,11 +157,14 @@ int pal_init_enclave(const char *instance_dir) {
         if (fp != NULL) { fclose(fp); }
         return -1;
     }
+    pal_clock(&ts, "finish sgx_create_enclave");
 
     /* Step 3: save the launch token if it is updated */
+    pal_clock(&ts, "start update launch token");
     if (updated == 0 || fp == NULL) {
         /* if the token is not updated, or file handler is invalid, do not perform saving */
         if (fp != NULL) { fclose(fp); }
+        pal_clock(&ts, "finish update launch token (no save)");
         return 0;
     }
 
@@ -169,6 +176,7 @@ int pal_init_enclave(const char *instance_dir) {
         PAL_WARN("Warning: Failed to save launch token to \"%s\".\n", token_path);
     }
     fclose(fp);
+    pal_clock(&ts, "finish update launch token");
     return 0;
 }
 

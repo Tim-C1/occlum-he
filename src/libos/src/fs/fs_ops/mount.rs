@@ -18,13 +18,16 @@ pub fn do_mount_rootfs(
 ) -> Result<()> {
     debug!("mount rootfs");
 
+    info!("begin to mount rootfs");
     if MOUNT_ONCE.is_completed() {
         return_errno!(EPERM, "rootfs cannot be mounted more than once");
     }
 
     let mount_config = &user_app_config.mount;
     let new_rootfs = open_root_fs_according_to(mount_config, user_key)?;
+    info!("finish open_root_fs_according_to");
     mount_nonroot_fs_according_to(&new_rootfs.root_inode(), mount_config, user_key, true)?;
+    info!("finish mount_nonroot_fs_according_to");
     MOUNT_ONCE.call_once(|| {
         let mut rootfs = ROOT_FS.write().unwrap();
         rootfs.sync().expect("failed to sync old rootfs");
@@ -43,6 +46,7 @@ pub fn do_mount_rootfs(
     // Write hosts file into mounted file system
     write_host_file(HostFile::Hosts)?;
     *HOSTS_STR.write().unwrap() = None;
+    info!("finish writing host files");
 
     Ok(())
 }

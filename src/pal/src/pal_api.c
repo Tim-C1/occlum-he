@@ -156,19 +156,19 @@ int occlum_pal_init(const struct occlum_pal_attr *attr) {
     }
     pal_clock(&ts, "finish pal_interrupt_thread_start");
 
-    pal_clock(&ts, "start pal_run_init_process");
-    if (pal_run_init_process() < 0) {
-        PAL_ERROR("Failed to run the init process: %s", errno2str(errno));
-        goto stop_interrupt_thread;
-    }
-    pal_clock(&ts, "finish pal_run_init_process");
+    //pal_clock(&ts, "start pal_run_init_process");
+    //if (pal_run_init_process() < 0) {
+    //    PAL_ERROR("Failed to run the init process: %s", errno2str(errno));
+    //    goto stop_interrupt_thread;
+    //}
+    //pal_clock(&ts, "finish pal_run_init_process");
 
     return 0;
 
-stop_interrupt_thread:
-    if (pal_interrupt_thread_stop() < 0) {
-        PAL_WARN("Cannot stop the interrupt thread: %s", errno2str(errno));
-    }
+//stop_interrupt_thread:
+//    if (pal_interrupt_thread_stop() < 0) {
+//        PAL_WARN("Cannot stop the interrupt thread: %s", errno2str(errno));
+//    }
 on_destroy_enclave:
     if (pal_destroy_enclave() < 0) {
         PAL_WARN("Cannot destroy the enclave");

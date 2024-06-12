@@ -5,7 +5,7 @@ use std::sync::Once;
 
 use super::*;
 use crate::exception::*;
-use crate::fs::HostStdioFds;
+use crate::fs::{HostStdioFds, do_mount_rootfs};
 use crate::interrupt;
 use crate::process::idle_reap_zombie_children;
 use crate::process::{ProcessFilter, SpawnAttr};
@@ -111,6 +111,9 @@ pub extern "C" fn occlum_ecall_init(
 
         // Add hook for allocation error
         std::alloc::set_alloc_error_hook(oom_handle);
+
+        // Mount the user app rootfs here instead launching a standalone init process to do this
+        do_mount_rootfs(std::ptr::null(), std::ptr::null());
     });
 
     panic::catch_unwind(|| {
